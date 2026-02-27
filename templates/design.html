@@ -1,328 +1,525 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Design Signature Fields</title>
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Design Signature Fields - HrSign</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
 
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-    /* =========================
-       BACKGROUND (SNOWY GLASS)
-    ========================== */
-    body {
-        margin: 0;
-        font-family: 'Segoe UI', sans-serif;
-        background: linear-gradient(135deg, #e8e8e8, #f5f5f5);
-        overflow-x: hidden;
-    }
+        body {
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            background: #0a0e27;
+            color: white;
+            position: relative;
+            overflow-x: hidden;
+        }
 
-    canvas#snow {
-        position: fixed;
-        top: 0;
-        left: 0;
-        z-index: -1;
-    }
+        /* Animated Grid Background */
+        .grid-bg {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            background-image:
+                linear-gradient(rgba(99, 102, 241, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(99, 102, 241, 0.05) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: gridMove 20s linear infinite;
+            z-index: 0;
+        }
 
-    /* =========================
-       HEADER
-    ========================== */
-    .page-header {
-        max-width: 1200px;
-        margin: 40px auto 20px auto;
-        padding: 25px;
-        border-radius: 25px;
-        background: rgba(255,255,255,0.35);
-        backdrop-filter: blur(20px);
-        box-shadow: 0 15px 40px rgba(0,0,0,0.1);
-        border: 1px solid rgba(255,255,255,0.6);
-    }
+        @keyframes gridMove {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+        }
 
-    .page-header h2 {
-        margin: 0;
-        font-size: 26px;
-        color: #333;
-    }
+        /* Container */
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 30px 20px;
+        }
 
-    /* =========================
-       TOOLBAR
-    ========================== */
-    .toolbar {
-        margin-top: 20px;
-        display: flex;
-        gap: 15px;
-    }
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding: 25px 30px;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
 
-    .toolbar button {
-        padding: 10px 20px;
-        border-radius: 12px;
-        border: none;
-        font-weight: 600;
-        cursor: pointer;
-        transition: 0.3s ease;
-        background: linear-gradient(135deg, #d9d9d9, #ffffff);
-        color: #333;
-    }
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
 
-    .toolbar button:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-    }
+        .back-btn {
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            color: white;
+        }
 
-    /* =========================
-       PDF CONTAINER
-    ========================== */
-    #pdf-container {
-        max-width: 1200px;
-        margin: 20px auto 60px auto;
-    }
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(-3px);
+        }
 
-    .page-wrapper {
-        position: relative;
-        margin-bottom: 40px;
-        display: inline-block;
-        border-radius: 20px;
-        overflow: hidden;
-        box-shadow: 0 15px 35px rgba(0,0,0,0.1);
-        background: rgba(255,255,255,0.4);
-        backdrop-filter: blur(10px);
-        padding: 15px;
-    }
+        .back-btn svg {
+            width: 20px;
+            height: 20px;
+            fill: currentColor;
+        }
 
-    canvas {
-        border-radius: 15px;
-    }
+        .header-title {
+            font-size: 24px;
+            font-weight: 700;
+        }
 
-    /* =========================
-       FIELD BOX DESIGN
-    ========================== */
-    .box {
-        position: absolute;
-        border: 2px dashed #888;
-        background: rgba(255,255,255,0.5);
-        backdrop-filter: blur(5px);
-        resize: both;
-        overflow: auto;
-        cursor: move;
-        min-width: 80px;
-        min-height: 30px;
-        border-radius: 10px;
-        transition: 0.2s ease;
-    }
+        .filename {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.6);
+            margin-top: 4px;
+        }
 
-    .box:hover {
-        border-color: #555;
-        background: rgba(255,255,255,0.7);
-    }
+        .header-actions {
+            display: flex;
+            gap: 12px;
+        }
 
+        .btn {
+            padding: 12px 24px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white;
+            box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 30px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.05);
+            color: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .btn svg {
+            width: 16px;
+            height: 16px;
+            fill: currentColor;
+        }
+
+        /* Instructions Panel */
+        .instructions {
+            margin-bottom: 25px;
+            padding: 20px 25px;
+            background: rgba(99, 102, 241, 0.1);
+            backdrop-filter: blur(20px);
+            border-radius: 16px;
+            border: 1px solid rgba(99, 102, 241, 0.3);
+        }
+
+        .instructions-title {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #c7d2fe;
+        }
+
+        .instructions-list {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .instruction-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .instruction-icon {
+            width: 24px;
+            height: 24px;
+            background: rgba(99, 102, 241, 0.3);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+
+        /* PDF Container */
+        #pdf-container {
+            padding: 30px;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .page-wrapper {
+            position: relative;
+            margin-bottom: 30px;
+            display: inline-block;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+            background: white;
+        }
+
+        canvas {
+            display: block;
+        }
+
+        /* Field Box Design */
+        .box {
+            position: absolute;
+            border: 2px solid #6366f1;
+            background: rgba(99, 102, 241, 0.15);
+            backdrop-filter: blur(5px);
+            resize: both;
+            overflow: auto;
+            cursor: move;
+            min-width: 100px;
+            min-height: 40px;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+
+        .box::after {
+            content: 'E-Signature Field';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 11px;
+            font-weight: 600;
+            color: #6366f1;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+
+        .box:hover {
+            border-color: #8b5cf6;
+            background: rgba(139, 92, 246, 0.2);
+            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+        }
+
+        .box-handle {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 16px;
+            height: 16px;
+            background: #6366f1;
+            border-radius: 4px 0 0 0;
+            cursor: nwse-resize;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                gap: 20px;
+            }
+
+            .header-actions {
+                width: 100%;
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .instructions-list {
+                flex-direction: column;
+            }
+        }
     </style>
 </head>
-
 <body>
 
-<canvas id="snow"></canvas>
+    <!-- Background -->
+    <div class="grid-bg"></div>
 
-<div class="page-header">
-    <h2>Design Fields - {{ filename }}</h2>
+    <!-- Container -->
+    <div class="container">
 
-    <div class="toolbar">
-        <button onclick="savePositions()">Save</button>
-        <button onclick="clearAll()">Clear All</button>
+        <!-- Header -->
+        <div class="header">
+            <div class="header-left">
+                <a href="/admin" class="back-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                        <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
+                    </svg>
+                </a>
+                <div>
+                    <h1 class="header-title">Design Signature Fields</h1>
+                    <div class="filename">{{ filename }}</div>
+                </div>
+            </div>
+
+            <div class="header-actions">
+                <button onclick="clearAll()" class="btn btn-secondary">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                        <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+                    </svg>
+                    Clear All
+                </button>
+                <button onclick="savePositions()" class="btn btn-primary">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                        <path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/>
+                    </svg>
+                    Save Fields
+                </button>
+            </div>
+        </div>
+
+        <!-- Instructions -->
+        <div class="instructions">
+            <div class="instructions-title">How to use:</div>
+            <div class="instructions-list">
+                <div class="instruction-item">
+                    <span class="instruction-icon">👆</span>
+                    <span>Click on the PDF to add a signature field</span>
+                </div>
+                <div class="instruction-item">
+                    <span class="instruction-icon">↔️</span>
+                    <span>Drag fields to reposition them</span>
+                </div>
+                <div class="instruction-item">
+                    <span class="instruction-icon">📐</span>
+                    <span>Resize fields by dragging corners</span>
+                </div>
+                <div class="instruction-item">
+                    <span class="instruction-icon">🗑️</span>
+                    <span>Double-click a field to delete it</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- PDF Container -->
+        <div id="pdf-container"></div>
+
     </div>
-</div>
 
-<div id="pdf-container"></div>
+    <script>
+    let positions = {{ fields | tojson }};
+    const docId = "{{ doc_id }}";
+    const pdfUrl = "/uploads/{{ filename }}";
 
-<script>
-let positions = {{ fields | tojson }};
-const docId = "{{ doc_id }}";
-const pdfUrl = "/uploads/{{ filename }}";
+    pdfjsLib.getDocument(pdfUrl).promise.then(pdf => {
+        for (let i = 1; i <= pdf.numPages; i++) {
+            pdf.getPage(i).then(page => {
+                const scale = 1.5;
+                const viewport = page.getViewport({ scale });
 
-pdfjsLib.getDocument(pdfUrl).promise.then(pdf => {
+                const wrapper = document.createElement("div");
+                wrapper.className = "page-wrapper";
 
-    for (let i = 1; i <= pdf.numPages; i++) {
+                const canvas = document.createElement("canvas");
+                const context = canvas.getContext("2d");
 
-        pdf.getPage(i).then(page => {
+                canvas.width = viewport.width;
+                canvas.height = viewport.height;
 
-            const scale = 1.2;
-            const viewport = page.getViewport({ scale });
+                wrapper.appendChild(canvas);
+                document.getElementById("pdf-container").appendChild(wrapper);
 
-            const wrapper = document.createElement("div");
-            wrapper.className = "page-wrapper";
+                page.render({ canvasContext: context, viewport: viewport });
 
-            const canvas = document.createElement("canvas");
-            const context = canvas.getContext("2d");
+                // Add click to create field
+                canvas.addEventListener("click", function (e) {
+                    const rect = canvas.getBoundingClientRect();
+                    const clickX = e.clientX - rect.left;
+                    const clickY = e.clientY - rect.top;
 
-            canvas.width = viewport.width;
-            canvas.height = viewport.height;
+                    const pdfX = clickX / scale;
+                    const pdfY = (canvas.height - clickY) / scale;
 
-            wrapper.appendChild(canvas);
-            document.getElementById("pdf-container").appendChild(wrapper);
+                    const field = {
+                        page: i - 1,
+                        x: pdfX,
+                        y: pdfY,
+                        width: 200,
+                        height: 60
+                    };
 
-            page.render({ canvasContext: context, viewport: viewport });
+                    positions.push(field);
+                    createBox(wrapper, clickX, clickY, 200, 60, positions.length - 1, scale, canvas);
+                });
 
-            canvas.addEventListener("click", function (e) {
+                // Render existing fields
+                positions.forEach((p, index) => {
+                    if (p.page === i - 1) {
+                        const left = p.x * scale;
+                        const top = canvas.height - p.y * scale;
+                        const width = p.width * scale;
+                        const height = p.height * scale;
 
-                const rect = canvas.getBoundingClientRect();
-                const clickX = e.clientX - rect.left;
-                const clickY = e.clientY - rect.top;
-
-                const pdfX = clickX / scale;
-                const pdfY = (canvas.height - clickY) / scale;
-
-                const field = {
-                    page: i - 1,
-                    x: pdfX,
-                    y: pdfY,
-                    width: 150,
-                    height: 50
-                };
-
-                positions.push(field);
-
-                createBox(wrapper, clickX, clickY, 150, 50, positions.length - 1, scale, canvas);
+                        createBox(wrapper, left, top, width, height, index, scale, canvas);
+                    }
+                });
             });
+        }
+    });
 
-            positions.forEach((p, index) => {
-                if (p.page === i - 1) {
+    function createBox(wrapper, left, top, width, height, index, scale, canvas) {
+        const box = document.createElement("div");
+        box.className = "box";
+        box.style.left = left + "px";
+        box.style.top = top + "px";
+        box.style.width = width + "px";
+        box.style.height = height + "px";
 
-                    const left = p.x * scale;
-                    const top = canvas.height - p.y * scale;
-                    const width = p.width * scale;
-                    const height = p.height * scale;
+        wrapper.appendChild(box);
 
-                    createBox(wrapper, left, top, width, height, index, scale, canvas);
-                }
-            });
+        let offsetX, offsetY, isDragging = false;
 
+        box.addEventListener("mousedown", function (e) {
+            isDragging = true;
+            offsetX = e.offsetX;
+            offsetY = e.offsetY;
+            e.stopPropagation();
+        });
+
+        document.addEventListener("mousemove", function (e) {
+            if (!isDragging) return;
+
+            const rect = wrapper.getBoundingClientRect();
+            const newLeft = e.clientX - rect.left - offsetX;
+            const newTop = e.clientY - rect.top - offsetY;
+
+            box.style.left = newLeft + "px";
+            box.style.top = newTop + "px";
+
+            updatePosition(index, newLeft, newTop, box.offsetWidth, box.offsetHeight, scale, canvas);
+        });
+
+        document.addEventListener("mouseup", function () {
+            if (isDragging) {
+                isDragging = false;
+                updatePosition(index,
+                    parseFloat(box.style.left),
+                    parseFloat(box.style.top),
+                    box.offsetWidth,
+                    box.offsetHeight,
+                    scale,
+                    canvas
+                );
+            }
+        });
+
+        box.ondblclick = function (e) {
+            e.stopPropagation();
+            if (confirm("Delete this signature field?")) {
+                positions.splice(index, 1);
+                box.remove();
+            }
+        };
+
+        // Resize observer
+        const resizeObserver = new ResizeObserver(() => {
+            updatePosition(index,
+                parseFloat(box.style.left),
+                parseFloat(box.style.top),
+                box.offsetWidth,
+                box.offsetHeight,
+                scale,
+                canvas
+            );
+        });
+        resizeObserver.observe(box);
+    }
+
+    function updatePosition(index, left, top, width, height, scale, canvas) {
+        const pdfX = left / scale;
+        const pdfY = (canvas.height - top) / scale;
+        const pdfWidth = width / scale;
+        const pdfHeight = height / scale;
+
+        if (positions[index]) {
+            positions[index].x = pdfX;
+            positions[index].y = pdfY;
+            positions[index].width = pdfWidth;
+            positions[index].height = pdfHeight;
+        }
+    }
+
+    function savePositions() {
+        fetch("/admin/save_fields/" + docId, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(positions)
+        }).then(() => {
+            alert("✓ Signature fields saved successfully!");
         });
     }
-});
 
-function createBox(wrapper, left, top, width, height, index, scale, canvas) {
-
-    const box = document.createElement("div");
-    box.className = "box";
-    box.style.left = left + "px";
-    box.style.top = top + "px";
-    box.style.width = width + "px";
-    box.style.height = height + "px";
-
-    wrapper.appendChild(box);
-
-    let offsetX, offsetY, isDragging = false;
-
-    box.addEventListener("mousedown", function (e) {
-        isDragging = true;
-        offsetX = e.offsetX;
-        offsetY = e.offsetY;
-    });
-
-    document.addEventListener("mousemove", function (e) {
-        if (!isDragging) return;
-
-        const rect = wrapper.getBoundingClientRect();
-        const newLeft = e.clientX - rect.left - offsetX;
-        const newTop = e.clientY - rect.top - offsetY;
-
-        box.style.left = newLeft + "px";
-        box.style.top = newTop + "px";
-
-        updatePosition(index, newLeft, newTop, box.offsetWidth, box.offsetHeight, scale, canvas);
-    });
-
-    document.addEventListener("mouseup", function () {
-        isDragging = false;
-    });
-
-    box.addEventListener("mouseup", function () {
-        updatePosition(index,
-            parseFloat(box.style.left),
-            parseFloat(box.style.top),
-            box.offsetWidth,
-            box.offsetHeight,
-            scale,
-            canvas
-        );
-    });
-
-    box.ondblclick = function () {
-        if (confirm("Delete this field?")) {
-            positions.splice(index, 1);
-            box.remove();
+    function clearAll() {
+        if (confirm("Are you sure you want to clear all signature fields?")) {
+            positions = [];
+            // Save empty array to server first
+            fetch("/admin/save_fields/" + docId, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify([])
+            }).then(() => {
+                location.reload();
+            });
         }
-    };
-}
-
-function updatePosition(index, left, top, width, height, scale, canvas) {
-    const pdfX = left / scale;
-    const pdfY = (canvas.height - top) / scale;
-    const pdfWidth = width / scale;
-    const pdfHeight = height / scale;
-
-    positions[index].x = pdfX;
-    positions[index].y = pdfY;
-    positions[index].width = pdfWidth;
-    positions[index].height = pdfHeight;
-}
-
-function savePositions() {
-    fetch("/admin/save_fields/" + docId, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(positions)
-    }).then(() => alert("Fields Saved Successfully!"));
-}
-
-function clearAll() {
-    positions = [];
-    document.getElementById("pdf-container").innerHTML = "";
-    location.reload();
-}
-
-/* =========================
-   SNOW EFFECT
-========================= */
-
-const snowCanvas = document.getElementById("snow");
-const ctx = snowCanvas.getContext("2d");
-
-snowCanvas.width = window.innerWidth;
-snowCanvas.height = window.innerHeight;
-
-let flakes = [];
-
-for (let i = 0; i < 150; i++) {
-    flakes.push({
-        x: Math.random() * snowCanvas.width,
-        y: Math.random() * snowCanvas.height,
-        r: Math.random() * 3 + 1,
-        speed: Math.random() * 1 + 0.5
-    });
-}
-
-function drawSnow() {
-    ctx.clearRect(0, 0, snowCanvas.width, snowCanvas.height);
-    ctx.fillStyle = "rgba(255,255,255,0.8)";
-
-    flakes.forEach(f => {
-        ctx.beginPath();
-        ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2);
-        ctx.fill();
-
-        f.y += f.speed;
-
-        if (f.y > snowCanvas.height) {
-            f.y = -5;
-            f.x = Math.random() * snowCanvas.width;
-        }
-    });
-
-    requestAnimationFrame(drawSnow);
-}
-
-drawSnow();
-</script>
+    }
+    </script>
 
 </body>
 </html>

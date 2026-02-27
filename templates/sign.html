@@ -1,279 +1,868 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Document Signing | Aaptatt Private Limited</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Document - HrSign</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
 
     <style>
-    :root {
-        --primary: #1f2937;
-        --accent: #111827;
-        --border: #e5e7eb;
-        --muted: #6b7280;
-        --bg: #f4f6f9;
-    }
-
-    body {
-        margin: 0;
-        font-family: 'Inter', sans-serif;
-        background: var(--bg);
-        color: var(--primary);
-    }
-
-    /* =========================
-       TOP ENTERPRISE HEADER
-    ========================== */
-    .enterprise-header {
-        background: white;
-        border-bottom: 1px solid var(--border);
-        padding: 25px 60px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-    .company-left {
-        display: flex;
-        align-items: center;
-        gap: 20px;
-    }
-
-    .company-logo {
-        height: 55px;
-    }
-
-    .company-name {
-        font-weight: 600;
-        font-size: 18px;
-        letter-spacing: 0.5px;
-    }
-
-    .company-meta {
-        text-align: right;
-        font-size: 13px;
-        color: var(--muted);
-        line-height: 1.6;
-    }
-
-    /* =========================
-       MAIN CONTENT WRAPPER
-    ========================== */
-    .page-wrapper {
-        max-width: 1100px;
-        margin: 50px auto;
-        padding: 0 20px;
-    }
-
-    .page-title {
-        font-size: 28px;
-        font-weight: 600;
-        margin-bottom: 30px;
-    }
-
-    .document-card {
-        background: white;
-        border-radius: 12px;
-        padding: 30px;
-        box-shadow: 0 10px 25px rgba(0,0,0,0.04);
-        border: 1px solid var(--border);
-    }
-
-    iframe {
-        width: 100%;
-        height: 650px;
-        border-radius: 8px;
-        border: 1px solid var(--border);
-    }
-
-    /* =========================
-       FORM SECTION
-    ========================== */
-    .form-section {
-        margin-top: 40px;
-    }
-
-    .form-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 25px;
-    }
-
-    .form-group {
-        display: flex;
-        flex-direction: column;
-    }
-
-    label {
-        font-size: 13px;
-        font-weight: 500;
-        margin-bottom: 8px;
-        color: var(--muted);
-    }
-
-    input {
-        padding: 12px 14px;
-        border-radius: 8px;
-        border: 1px solid var(--border);
-        font-size: 14px;
-        transition: 0.2s ease;
-    }
-
-    input:focus {
-        outline: none;
-        border-color: #2563eb;
-        box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
-    }
-
-    #signature-pad {
-        width: 100%;
-        height: 160px;
-        border-radius: 8px;
-        border: 1px dashed var(--border);
-        background: #fafafa;
-    }
-
-    .signature-wrapper {
-        margin-top: 30px;
-    }
-
-    .button-group {
-        margin-top: 25px;
-        display: flex;
-        justify-content: flex-end;
-        gap: 15px;
-    }
-
-    button {
-        padding: 11px 22px;
-        border-radius: 8px;
-        font-size: 14px;
-        font-weight: 500;
-        cursor: pointer;
-        transition: 0.2s ease;
-    }
-
-    .btn-secondary {
-        background: #f3f4f6;
-        border: 1px solid var(--border);
-    }
-
-    .btn-primary {
-        background: #111827;
-        color: white;
-        border: none;
-    }
-
-    .btn-primary:hover {
-        background: #000;
-    }
-
-    .btn-secondary:hover {
-        background: #e5e7eb;
-    }
-
-    @media (max-width: 900px) {
-        .form-grid {
-            grid-template-columns: 1fr;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
-        iframe {
-            height: 500px;
+        body {
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            background: #0a0e27;
+            color: white;
         }
-    }
+
+        /* Header */
+        .header {
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 20px 40px;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .company-info h1 {
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .company-tagline {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .company-meta {
+            text-align: right;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.5);
+            line-height: 1.6;
+        }
+
+        /* Container */
+        .container {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .page-title {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        /* Document Card */
+        .document-card {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* PDF Viewer */
+        #pdf-container {
+            width: 100%;
+            margin-bottom: 40px;
+            background: white;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        #pdf-container::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        #pdf-container::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        #pdf-container::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 10px;
+        }
+
+        #pdf-container::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+
+        .page-wrapper {
+            position: relative;
+            margin-bottom: 20px;
+            display: inline-block;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        canvas {
+            display: block;
+        }
+
+        /* Signature Field Box Indicator */
+        .field-indicator {
+            position: absolute;
+            border: 3px solid #22c55e;
+            background: rgba(34, 197, 94, 0.1);
+            border-radius: 8px;
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: pulse-border 2s infinite;
+        }
+
+        .field-indicator::after {
+            content: '✍️ Sign Here';
+            font-size: 14px;
+            font-weight: 700;
+            color: #16a34a;
+            text-shadow: 0 2px 4px rgba(255, 255, 255, 0.9);
+            padding: 4px 12px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 6px;
+        }
+
+        @keyframes pulse-border {
+            0%, 100% {
+                border-color: #22c55e;
+                box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4);
+            }
+            50% {
+                border-color: #16a34a;
+                box-shadow: 0 0 0 8px rgba(34, 197, 94, 0);
+            }
+        }
+
+        /* Form Section */
+        .form-section {
+            display: grid;
+            gap: 30px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        input {
+            padding: 14px 16px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 15px;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+            font-family: 'Inter', sans-serif;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #6366f1;
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
+        }
+
+        input::placeholder {
+            color: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Signature Section */
+        .signature-section {
+            margin-top: 40px;
+        }
+
+        .signature-label {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .signature-description {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 15px;
+        }
+
+        .signature-preview-wrapper {
+            position: relative;
+            background: rgba(255, 255, 255, 0.95);
+            border: 2px solid rgba(99, 102, 241, 0.3);
+            border-radius: 12px;
+            padding: 30px 20px;
+            min-height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .signature-preview-wrapper:hover {
+            border-color: #6366f1;
+            background: white;
+        }
+
+        .signature-preview {
+            font-family: 'Brush Script MT', 'Lucida Handwriting', cursive;
+            font-size: 42px;
+            color: #1a202c;
+            font-weight: 400;
+            text-align: center;
+            font-style: italic;
+        }
+
+        .preview-placeholder {
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            color: #cbd5e0;
+            font-style: normal;
+        }
+
+        .signature-hint {
+            text-align: center;
+            margin-top: 12px;
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        /* Consent Section */
+        .consent-section {
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(99, 102, 241, 0.1);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            border-radius: 12px;
+        }
+
+        .consent-label {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            cursor: pointer;
+            font-size: 14px;
+            line-height: 1.6;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        #consent-checkbox {
+            margin-top: 4px;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            accent-color: #6366f1;
+            flex-shrink: 0;
+        }
+
+        .consent-text {
+            flex: 1;
+        }
+
+        /* Button Group */
+        .button-group {
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .btn {
+            padding: 14px 28px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.05);
+            color: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white;
+            box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 30px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn svg {
+            width: 18px;
+            height: 18px;
+            fill: currentColor;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        /* Success Screen */
+        .success-screen {
+            display: none;
+            text-align: center;
+            padding: 60px 40px;
+        }
+
+        .success-screen.active {
+            display: block;
+        }
+
+        .success-icon {
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 30px;
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(16, 185, 129, 0.2));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: scaleIn 0.5s ease-out;
+        }
+
+        .success-icon svg {
+            width: 50px;
+            height: 50px;
+            fill: #22c55e;
+        }
+
+        @keyframes scaleIn {
+            0% {
+                transform: scale(0);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.1);
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .success-title {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: white;
+        }
+
+        .success-message {
+            font-size: 16px;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 40px;
+            line-height: 1.6;
+        }
+
+        .success-info {
+            display: inline-block;
+            padding: 20px 30px;
+            background: rgba(99, 102, 241, 0.1);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            border-radius: 12px;
+            margin-bottom: 40px;
+            text-align: left;
+        }
+
+        .success-info-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 40px;
+            margin-bottom: 12px;
+        }
+
+        .success-info-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .success-info-label {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .success-info-value {
+            font-size: 14px;
+            font-weight: 600;
+            color: white;
+        }
+
+        .success-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        /* Already Signed Screen */
+        .already-signed-screen {
+            text-align: center;
+            padding: 60px 40px;
+        }
+
+        .already-signed-icon {
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 30px;
+            background: rgba(251, 191, 36, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .already-signed-icon svg {
+            width: 50px;
+            height: 50px;
+            fill: #fbbf24;
+        }
+
+        .already-signed-title {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: white;
+        }
+
+        .already-signed-message {
+            font-size: 16px;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 40px;
+            line-height: 1.6;
+        }
+
+        .already-signed-info {
+            display: inline-block;
+            padding: 20px 30px;
+            background: rgba(251, 191, 36, 0.1);
+            border: 1px solid rgba(251, 191, 36, 0.3);
+            border-radius: 12px;
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .already-signed-info-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 40px;
+            margin-bottom: 12px;
+        }
+
+        .already-signed-info-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .already-signed-info-label {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .already-signed-info-value {
+            font-size: 14px;
+            font-weight: 600;
+            color: white;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+
+            .company-meta {
+                text-align: center;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            iframe {
+                height: 400px;
+            }
+        }
     </style>
 </head>
-
 <body>
 
-<!-- ENTERPRISE HEADER -->
-<div class="enterprise-header">
-    <div class="company-left">
-        <img src="{{ url_for('static', filename='logo.png') }}" alt="" class="company-logo">
-        <div>
-            <div class="company-name">Aaptatt Private Limited</div>
-            <div style="font-size:12px; color:#6b7280;">Innovation at Forefront</div>
+    <!-- Header -->
+    <div class="header">
+        <div class="header-content">
+            <div class="company-info">
+                <h1>Aaptatt Private Limited</h1>
+                <div class="company-tagline">Innovation at Forefront</div>
+            </div>
+            <div class="company-meta">
+                2nd Floor, Plot #4, Minarch Tower, Sector 44<br>
+                Gurugram, Haryana - 122003<br>
+                CIN: U62099HR2023PTC111102 | GSTIN: 06AAYCA5916E1ZF
+            </div>
         </div>
     </div>
 
-    <div class="company-meta">
-        2nd Floor, Plot #4, Minarch Tower, Sector 44<br>
-        Gurugram, Haryana - 122003<br>
-        CIN: U62099HR2023PTC111102<br>
-        GSTIN: 06AAYCA5916E1ZF
-    </div>
-</div>
+    <!-- Main Container -->
+    <div class="container">
+        <h2 class="page-title">Document Signing</h2>
 
-<!-- PAGE CONTENT -->
-<div class="page-wrapper">
+        {% if already_signed %}
+        <!-- Already Signed Screen -->
+        <div class="document-card already-signed-screen">
+            <div class="already-signed-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                </svg>
+            </div>
 
-    <div class="page-title">𝔇𝔬𝔠𝔲𝔪𝔢𝔫𝔱 𝔖𝔦𝔤𝔫𝔦𝔫𝔤  </div>
+            <h2 class="already-signed-title">This Document Has Already Been Signed</h2>
+            <p class="already-signed-message">
+                This signing link has been used and is no longer active. The document was successfully signed and secured.
+            </p>
 
-    <div class="document-card">
+            {% if sign_info %}
+            <div class="already-signed-info">
+                <div class="already-signed-info-row">
+                    <span class="already-signed-info-label">Signed By:</span>
+                    <span class="already-signed-info-value">{{ sign_info[0] }}</span>
+                </div>
+                <div class="already-signed-info-row">
+                    <span class="already-signed-info-label">Employee ID:</span>
+                    <span class="already-signed-info-value">{{ sign_info[1] if sign_info[1] else 'N/A' }}</span>
+                </div>
+                <div class="already-signed-info-row">
+                    <span class="already-signed-info-label">Signed On:</span>
+                    <span class="already-signed-info-value">{{ sign_info[2][:16] if sign_info[2] else 'N/A' }}</span>
+                </div>
+                <div class="already-signed-info-row">
+                    <span class="already-signed-info-label">Version:</span>
+                    <span class="already-signed-info-value">v{{ sign_info[3] }}</span>
+                </div>
+            </div>
+            {% endif %}
 
-        <!-- PDF Viewer -->
-        <iframe src="/uploads/{{ filename }}"></iframe>
+            <p class="already-signed-message" style="margin-top: 20px; font-size: 14px;">
+                If you need a copy of the signed document or have questions, please contact HR.
+            </p>
+        </div>
+        {% else %}
+        <div class="document-card">
+            <!-- PDF Viewer -->
+            <div id="pdf-container"></div>
 
-        <!-- FORM -->
-        <div class="form-section">
+            <!-- Form -->
             <form method="POST">
+                <div class="form-section">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="signer_name">Full Name *</label>
+                            <input
+                                type="text"
+                                id="signer_name"
+                                name="signer_name"
+                                placeholder="Enter your full name"
+                                required
+                            >
+                        </div>
 
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label>Signer Full Name</label>
-                        <input name="signer_name" required>
+                        <div class="form-group">
+                            <label for="employee_id">Employee ID / Email (Optional)</label>
+                            <input
+                                type="text"
+                                id="employee_id"
+                                name="employee_id"
+                                placeholder="Enter employee ID or email"
+                            >
+                        </div>
                     </div>
 
-                    <div class="form-group">
-                        <label>Employee ID</label>
-                        <input name="employee_id" required>
+                    <!-- Signature Section -->
+                    <div class="signature-section">
+                        <label class="signature-label">E-Signature *</label>
+                        <p class="signature-description">Your full name will be used as your electronic signature</p>
+
+                        <div class="signature-preview-wrapper">
+                            <div class="signature-preview" id="signature-preview">
+                                <span class="preview-placeholder">Your signature will appear here</span>
+                            </div>
+                        </div>
+
+                        <div class="signature-hint">
+                            Your name entered above will be displayed in signature style on the document
+                        </div>
                     </div>
+
+                    <!-- Consent Section -->
+                    <div class="consent-section">
+                        <label class="consent-label">
+                            <input type="checkbox" id="consent-checkbox" required>
+                            <span class="consent-text">
+                                I consent to use electronic signatures and agree that my electronic signature is the legally binding equivalent to my handwritten signature. I acknowledge that I have read, understood, and agree to the contents of this document.
+                            </span>
+                        </label>
+                    </div>
+
+                    <!-- Buttons -->
+                    <div class="button-group">
+                        <button type="button" class="btn btn-primary" onclick="submitSign()">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                                <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
+                            </svg>
+                            Submit E-Signature
+                        </button>
+                    </div>
+
+                    <input type="hidden" name="signature" id="signature-input">
                 </div>
-
-                <div class="signature-wrapper">
-                    <label>Digital Signature</label>
-                    <canvas id="signature-pad"></canvas>
-                </div>
-
-                <div class="button-group">
-                    <button type="button" class="btn-secondary" onclick="clearSign()">Clear</button>
-                    <button type="button" class="btn-primary" onclick="submitSign()">Submit Signature</button>
-                </div>
-
-                <input type="hidden" name="signature" id="signature-input">
-
             </form>
         </div>
 
+        <!-- Success Screen -->
+        <div class="document-card success-screen" id="success-screen">
+            <div class="success-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                    <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
+                </svg>
+            </div>
+
+            <h2 class="success-title">Document Signed Successfully!</h2>
+            <p class="success-message">
+                Your electronic signature has been applied and the document has been securely stored.
+            </p>
+
+            <div class="success-info">
+                <div class="success-info-row">
+                    <span class="success-info-label">Signer Name:</span>
+                    <span class="success-info-value" id="success-signer-name">-</span>
+                </div>
+                <div class="success-info-row">
+                    <span class="success-info-label">Document Version:</span>
+                    <span class="success-info-value" id="success-version">-</span>
+                </div>
+            </div>
+
+            <div class="success-actions">
+                <a href="#" id="download-btn" class="btn btn-primary">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                        <path d="M19 12v7H5v-7H3v7c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-7h-2zm-6 .67l2.59-2.58L17 11.5l-5 5-5-5 1.41-1.41L11 12.67V3h2z"/>
+                    </svg>
+                    Download Signed Document
+                </a>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Footer -->
+        <div class="footer">
+            HrSign &copy; 2026 - Aaptatt Private Limited
+        </div>
     </div>
 
-</div>
+    {% if not already_signed %}
+    <script>
+    // Load signature fields and PDF
+    const fields = {{ fields | tojson }};
+    const pdfUrl = "/uploads/{{ filename }}";
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/signature_pad/4.1.5/signature_pad.umd.min.js"></script>
+    // Render PDF with signature field indicators
+    pdfjsLib.getDocument(pdfUrl).promise.then(pdf => {
+        for (let i = 1; i <= pdf.numPages; i++) {
+            pdf.getPage(i).then(page => {
+                const scale = 1.3;
+                const viewport = page.getViewport({ scale });
 
-<script>
-const canvas = document.getElementById("signature-pad");
-const pad = new SignaturePad(canvas, { penColor: "black" });
+                const wrapper = document.createElement("div");
+                wrapper.className = "page-wrapper";
 
-function resizeCanvas() {
-    const ratio = Math.max(window.devicePixelRatio || 1, 1);
-    canvas.width = canvas.offsetWidth * ratio;
-    canvas.height = canvas.offsetHeight * ratio;
-    canvas.getContext("2d").scale(ratio, ratio);
-}
-resizeCanvas();
-window.addEventListener("resize", resizeCanvas);
+                const canvas = document.createElement("canvas");
+                const context = canvas.getContext("2d");
 
-function clearSign() { pad.clear(); }
+                canvas.width = viewport.width;
+                canvas.height = viewport.height;
 
-function submitSign() {
-    if (pad.isEmpty()) {
-        alert("Please provide your signature.");
-        return;
+                wrapper.appendChild(canvas);
+                document.getElementById("pdf-container").appendChild(wrapper);
+
+                page.render({ canvasContext: context, viewport: viewport });
+
+                // Render signature field indicators
+                fields.forEach((field, index) => {
+                    if (field.page === i - 1) {
+                        const left = field.x * scale;
+                        const top = canvas.height - field.y * scale;
+                        const width = field.width * scale;
+                        const height = field.height * scale;
+
+                        const indicator = document.createElement("div");
+                        indicator.className = "field-indicator";
+                        indicator.style.left = left + "px";
+                        indicator.style.top = top + "px";
+                        indicator.style.width = width + "px";
+                        indicator.style.height = height + "px";
+
+                        wrapper.appendChild(indicator);
+                    }
+                });
+            });
+        }
+    });
+
+    // Update signature preview when name is typed
+    const nameInput = document.getElementById("signer_name");
+    const signaturePreview = document.getElementById("signature-preview");
+
+    nameInput.addEventListener("input", function() {
+        const name = this.value.trim();
+        if (name) {
+            signaturePreview.innerHTML = name;
+        } else {
+            signaturePreview.innerHTML = '<span class="preview-placeholder">Your signature will appear here</span>';
+        }
+    });
+
+    // Generate signature image from text
+    function generateSignatureImage(text) {
+        const canvas = document.createElement('canvas');
+        canvas.width = 600;
+        canvas.height = 200;
+        const ctx = canvas.getContext('2d');
+
+        // White background
+        ctx.fillStyle = 'white';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Signature text
+        ctx.fillStyle = '#000000';
+        ctx.font = 'italic 60px "Brush Script MT", cursive';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(text, canvas.width / 2, canvas.height / 2);
+
+        return canvas.toDataURL('image/png');
     }
-    document.getElementById("signature-input").value = pad.toDataURL("image/png");
-    document.forms[0].submit();
-}
-</script>
+
+    async function submitSign() {
+        const signerName = document.getElementById("signer_name").value.trim();
+        const employeeId = document.getElementById("employee_id").value.trim();
+        const consentChecked = document.getElementById("consent-checkbox").checked;
+
+        if (!signerName) {
+            alert("⚠️ Please enter your full name.");
+            return;
+        }
+
+        if (!consentChecked) {
+            alert("⚠️ Please read and accept the consent agreement to proceed.");
+            return;
+        }
+
+        // Generate signature image from name
+        const signatureImage = generateSignatureImage(signerName);
+
+        // Prepare form data
+        const formData = new FormData();
+        formData.append("signature", signatureImage);
+        formData.append("signer_name", signerName);
+        formData.append("employee_id", employeeId);
+
+        try {
+            // Submit signature
+            const response = await fetch(window.location.href, {
+                method: "POST",
+                body: formData
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                // Hide the form
+                document.querySelector(".document-card form").parentElement.style.display = "none";
+                document.getElementById("pdf-container").style.display = "none";
+
+                // Show success screen
+                const successScreen = document.getElementById("success-screen");
+                successScreen.classList.add("active");
+
+                // Update success screen info
+                document.getElementById("success-signer-name").textContent = result.signer_name;
+                document.getElementById("success-version").textContent = "v" + result.version;
+
+                // Set download link
+                document.getElementById("download-btn").href = "/download-signed/" + result.record_id;
+
+                // Scroll to success screen
+                successScreen.scrollIntoView({ behavior: "smooth", block: "center" });
+            } else {
+                alert("❌ Failed to sign document. Please try again.");
+            }
+        } catch (error) {
+            console.error("Error:", error);
+            alert("❌ An error occurred. Please try again.");
+        }
+    }
+    </script>
+    {% endif %}
 
 </body>
 </html>

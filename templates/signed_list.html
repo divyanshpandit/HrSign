@@ -1,49 +1,480 @@
-<h2>Signed Records</h2>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Signed Records - HrSign</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
-<a href="/admin">← Back to Dashboard</a>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-<br><br>
+        body {
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            background: #0a0e27;
+            color: white;
+            position: relative;
+            overflow-x: hidden;
+        }
 
-<form method="GET" action="/admin/signed">
-    <input type="text" name="search" placeholder="Search by Name or Employee ID"
-           value="{{ request.args.get('search', '') }}"
-           style="padding:8px; width:250px;">
+        /* Animated Grid Background */
+        .grid-bg {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            background-image:
+                linear-gradient(rgba(99, 102, 241, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(99, 102, 241, 0.05) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: gridMove 20s linear infinite;
+            z-index: 0;
+        }
 
-    <button type="submit" style="padding:8px 15px;">
-        Search
-    </button>
+        @keyframes gridMove {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+        }
 
-    {% if request.args.get('search') %}
-        <a href="/admin/signed" style="margin-left:10px;">Clear</a>
-    {% endif %}
-</form>
+        /* Container */
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 30px 20px;
+        }
 
-<br>
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding: 25px 30px;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
 
-<table border="1" cellpadding="8">
-    <tr>
-        <th>Record ID</th>
-        <th>Document ID</th>
-        <th>Employee ID</th>
-        <th>Signer Name</th>
-        <th>Version</th>
-        <th>Signed At</th>
-        <th>Download Copy</th>
-    </tr>
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
 
-    {% for r in records %}
-    <tr>
-        <td>{{ r[0] }}</td>
-        <td>{{ r[1] }}</td>
-        <td>{{ r[2] }}</td>
-        <td>{{ r[3] }}</td>
-        <td>{{ r[4] }}</td>
-        <td>{{ r[5] }}</td>
-        <td>
-            <a href="/admin/download/{{ r[0] }}">
-                Download
-            </a>
-        </td>
-    </tr>
-    {% endfor %}
-</table>
+        .back-btn {
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            color: white;
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(-3px);
+        }
+
+        .back-btn svg {
+            width: 20px;
+            height: 20px;
+            fill: currentColor;
+        }
+
+        .header-title {
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        .record-count {
+            padding: 8px 16px;
+            background: rgba(99, 102, 241, 0.2);
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #a5b4fc;
+        }
+
+        /* Search Section */
+        .search-section {
+            margin-bottom: 25px;
+            padding: 25px 30px;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .search-form {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .search-input {
+            flex: 1;
+            max-width: 400px;
+            padding: 14px 18px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: white;
+            font-size: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #6366f1;
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
+        }
+
+        .search-input::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        .btn {
+            padding: 14px 24px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white;
+            box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 30px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.05);
+            color: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .btn svg {
+            width: 16px;
+            height: 16px;
+            fill: currentColor;
+        }
+
+        /* Records Section */
+        .records-section {
+            padding: 30px;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Records List */
+        .records-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .record-card {
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            gap: 20px;
+            align-items: center;
+            padding: 20px 24px;
+            background: rgba(30, 41, 59, 0.6);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .record-card:hover {
+            border-color: rgba(99, 102, 241, 0.3);
+            background: rgba(30, 41, 59, 0.8);
+        }
+
+        .record-id {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(139, 92, 246, 0.2));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 16px;
+            color: #a78bfa;
+        }
+
+        .record-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+
+        .info-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .info-label {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.5);
+            font-weight: 500;
+        }
+
+        .info-value {
+            font-size: 14px;
+            color: white;
+            font-weight: 600;
+        }
+
+        .version-badge {
+            padding: 4px 10px;
+            background: rgba(59, 130, 246, 0.2);
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 700;
+            color: #93c5fd;
+            display: inline-block;
+        }
+
+        .download-btn {
+            padding: 12px 20px;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.3), rgba(139, 92, 246, 0.3));
+            border: 1px solid rgba(99, 102, 241, 0.4);
+            border-radius: 12px;
+            color: #c7d2fe;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 13px;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .download-btn:hover {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .download-btn svg {
+            width: 16px;
+            height: 16px;
+            fill: currentColor;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .empty-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 20px;
+            background: rgba(99, 102, 241, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .empty-icon svg {
+            width: 40px;
+            height: 40px;
+            fill: #6366f1;
+            opacity: 0.5;
+        }
+
+        .empty-text {
+            font-size: 18px;
+            color: rgba(255, 255, 255, 0.5);
+            margin-bottom: 10px;
+        }
+
+        .empty-subtext {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                gap: 20px;
+            }
+
+            .search-form {
+                flex-direction: column;
+            }
+
+            .search-input {
+                max-width: 100%;
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .record-card {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+
+            .record-info {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Background -->
+    <div class="grid-bg"></div>
+
+    <!-- Container -->
+    <div class="container">
+
+        <!-- Header -->
+        <div class="header">
+            <div class="header-left">
+                <a href="/admin" class="back-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                        <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
+                    </svg>
+                </a>
+                <h1 class="header-title">Signed Records</h1>
+            </div>
+            <span class="record-count">{{ records|length }} Records</span>
+        </div>
+
+        <!-- Search Section -->
+        <div class="search-section">
+            <form method="GET" action="/admin/signed" class="search-form">
+                <input
+                    type="text"
+                    name="search"
+                    class="search-input"
+                    placeholder="Search by email, name, or employee ID..."
+                    value="{{ request.args.get('search', '') }}"
+                >
+                <button type="submit" class="btn btn-primary">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                        <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+                    </svg>
+                    Search
+                </button>
+                {% if request.args.get('search') %}
+                <a href="/admin/signed" class="btn btn-secondary">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                        <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                    </svg>
+                    Clear
+                </a>
+                {% endif %}
+            </form>
+        </div>
+
+        <!-- Records Section -->
+        <div class="records-section">
+            {% if records %}
+            <div class="records-list">
+                {% for r in records %}
+                <div class="record-card">
+                    <div class="record-id">#{{ r[0] }}</div>
+
+                    <div class="record-info">
+                        <div class="info-item">
+                            <span class="info-label">Document ID</span>
+                            <span class="info-value">{{ r[1][:8] }}...</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Email</span>
+                            <span class="info-value">{{ r[6] if r[6] else 'N/A' }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Signer Name</span>
+                            <span class="info-value">{{ r[3] }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Employee ID</span>
+                            <span class="info-value">{{ r[2] if r[2] else 'N/A' }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Version</span>
+                            <span class="version-badge">v{{ r[4] }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Signed At</span>
+                            <span class="info-value">{{ r[5][:16] if r[5] else 'N/A' }}</span>
+                        </div>
+                    </div>
+
+                    <a href="/admin/download/{{ r[0] }}" class="download-btn">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                            <path d="M19 12v7H5v-7H3v7c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-7h-2zm-6 .67l2.59-2.58L17 11.5l-5 5-5-5 1.41-1.41L11 12.67V3h2z"/>
+                        </svg>
+                        Download
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <div class="empty-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                        <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/>
+                    </svg>
+                </div>
+                <p class="empty-text">No signed records found</p>
+                <p class="empty-subtext">
+                    {% if request.args.get('search') %}
+                    Try adjusting your search query
+                    {% else %}
+                    Signed documents will appear here
+                    {% endif %}
+                </p>
+            </div>
+            {% endif %}
+        </div>
+
+    </div>
+
+</body>
+</html>

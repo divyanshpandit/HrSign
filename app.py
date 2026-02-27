@@ -62,7 +62,8 @@ def init_db():
             filename TEXT,
             status TEXT,
             created_at TEXT,
-            integrity_hash TEXT
+            integrity_hash TEXT,
+            email TEXT
         )
     """)
 
@@ -106,12 +107,13 @@ def init_db():
 
 @app.route("/hr-login", methods=["GET", "POST"])
 def hr_login():
+    error = None
     if request.method == "POST":
         if request.form.get("username") == HR_USERNAME and request.form.get("password") == HR_PASSWORD:
             session["hr_logged_in"] = True
             return redirect("/admin")
-        return "Invalid Credentials", 401
-    return render_template("hr_login.html")
+        error = "Invalid username or password"
+    return render_template("hr_login.html", error=error)
 
 
 @app.route("/logout")
@@ -131,7 +133,7 @@ def admin():
 
     conn = sqlite3.connect(DB_NAME)
     c = conn.cursor()
-    c.execute("SELECT id, filename, status, created_at FROM documents ORDER BY created_at DESC")
+    c.execute("SELECT id, filename, status, created_at, email FROM documents ORDER BY created_at DESC")
     documents = c.fetchall()
     conn.close()
 
@@ -144,6 +146,11 @@ def upload_pdf():
         return "Unauthorized", 403
 
     file = request.files["pdf"]
+    email = request.form.get("email", "").strip()
+
+    # Validate email is provided
+    if not email:
+        return "Email is required", 400
 
     if file:
         # ✅ Clean filename (removes &, spaces, etc.)
@@ -163,9 +170,9 @@ def upload_pdf():
         conn = sqlite3.connect(DB_NAME)
         c = conn.cursor()
         c.execute("""
-            INSERT INTO documents (id, filename, status, created_at, integrity_hash)
-            VALUES (?, ?, ?, ?, ?)
-        """, (doc_id, unique_name, "Draft", datetime.now().isoformat(), file_hash))
+            INSERT INTO documents (id, filename, status, created_at, integrity_hash, email)
+            VALUES (?, ?, ?, ?, ?, ?)
+        """, (doc_id, unique_name, "Draft", datetime.now().isoformat(), file_hash, email))
         conn.commit()
         conn.close()
 
@@ -206,6 +213,9 @@ def save_fields(doc_id):
 
 @app.route("/admin/send/<doc_id>")
 def send_document(doc_id):
+    if not session.get("hr_logged_in"):
+        return redirect("/hr-login")
+
     conn = sqlite3.connect(DB_NAME)
     c = conn.cursor()
     c.execute("UPDATE documents SET status='Sent' WHERE id=?", (doc_id,))
@@ -237,13 +247,35 @@ def sign(doc_id):
     filename, status = doc
     pdf_path = os.path.join(UPLOAD_FOLDER, filename)
 
+    # Check if document is already signed
+    if status == "Signed":
+        # Get signing information
+        c.execute("""
+            SELECT signer_name, employee_id, signed_at, version
+            FROM signed_documents
+            WHERE document_id=?
+            ORDER BY signed_at DESC
+            LIMIT 1
+        """, (doc_id,))
+        sign_info = c.fetchone()
+        conn.close()
+
+        return render_template("sign.html",
+                             doc_id=doc_id,
+                             filename=filename,
+                             already_signed=True,
+                             sign_info=sign_info)
+
     if request.method == "POST":
+        # Prevent signing if document is already signed
+        if status == "Signed":
+            return {"success": False, "error": "Document has already been signed"}, 403
 
         signature_data = request.form.get("signature")
         signer_name = request.form.get("signer_name")
-        employee_id = request.form.get("employee_id")
+        employee_id = request.form.get("employee_id") or "N/A"
 
-        if not signature_data or not employee_id:
+        if not signature_data or not signer_name:
             return "Missing required data", 400
 
         fields = load_fields(doc_id)
@@ -303,7 +335,9 @@ def sign(doc_id):
         result = c.fetchone()[0]
         version = 1 if result is None else result + 1
 
-        enterprise_filename = f"{doc_id}_{employee_id}_v{version}.pdf"
+        # Sanitize employee_id for filename (replace invalid characters)
+        safe_employee_id = employee_id.replace("/", "-").replace("\\", "-").replace(" ", "_")
+        enterprise_filename = f"{doc_id}_{safe_employee_id}_v{version}.pdf"
         enterprise_path = os.path.join(SIGNED_FOLDER, enterprise_filename)
 
         with open(enterprise_path, "wb") as f:
@@ -338,17 +372,49 @@ def sign(doc_id):
         ))
 
         conn.commit()
+
+        # Get the record ID of the signed document
+        record_id = c.lastrowid
+
         conn.close()
 
-        return send_file(
-            io.BytesIO(signed_bytes),
-            as_attachment=True,
-            download_name=f"signed_v{version}.pdf",
-            mimetype="application/pdf"
-        )
+        return {
+            "success": True,
+            "record_id": record_id,
+            "version": version,
+            "signer_name": signer_name
+        }
+
+    # Load signature fields to display on the PDF
+    fields = load_fields(doc_id)
 
     conn.close()
-    return render_template("sign.html", doc_id=doc_id, filename=filename)
+    return render_template("sign.html",
+                         doc_id=doc_id,
+                         filename=filename,
+                         fields=fields,
+                         already_signed=False)
+
+
+@app.route("/download-signed/<int:record_id>")
+def download_signed_public(record_id):
+    conn = sqlite3.connect(DB_NAME)
+    c = conn.cursor()
+    c.execute("SELECT file_path, signer_name, version FROM signed_documents WHERE id=?", (record_id,))
+    record = c.fetchone()
+    conn.close()
+
+    if not record or not record[0]:
+        return "File not found", 404
+
+    file_path = os.path.join(SIGNED_FOLDER, record[0])
+
+    if not os.path.exists(file_path):
+        return "File missing on server", 404
+
+    download_name = f"signed_{record[1].replace(' ', '_')}_v{record[2]}.pdf"
+    return send_file(file_path, as_attachment=True, download_name=download_name)
+
 
 @app.route("/setup-hr")
 def setup_hr():
@@ -386,17 +452,20 @@ def view_signed():
 
     if search:
         c.execute("""
-            SELECT id, document_id, employee_id, signer_name, version, signed_at
-            FROM signed_documents
-            WHERE employee_id LIKE ?
-               OR signer_name LIKE ?
-            ORDER BY signed_at DESC
-        """, (f"%{search}%", f"%{search}%"))
+            SELECT sd.id, sd.document_id, sd.employee_id, sd.signer_name, sd.version, sd.signed_at, d.email
+            FROM signed_documents sd
+            LEFT JOIN documents d ON sd.document_id = d.id
+            WHERE sd.employee_id LIKE ?
+               OR sd.signer_name LIKE ?
+               OR d.email LIKE ?
+            ORDER BY sd.signed_at DESC
+        """, (f"%{search}%", f"%{search}%", f"%{search}%"))
     else:
         c.execute("""
-            SELECT id, document_id, employee_id, signer_name, version, signed_at
-            FROM signed_documents
-            ORDER BY signed_at DESC
+            SELECT sd.id, sd.document_id, sd.employee_id, sd.signer_name, sd.version, sd.signed_at, d.email
+            FROM signed_documents sd
+            LEFT JOIN documents d ON sd.document_id = d.id
+            ORDER BY sd.signed_at DESC
             LIMIT 10
         """)
 
@@ -434,24 +503,40 @@ def download_signed(record_id):
 
 @app.route("/admin/verify/<doc_id>")
 def verify(doc_id):
+    if not session.get("hr_logged_in"):
+        return redirect("/hr-login")
+
     conn = sqlite3.connect(DB_NAME)
     c = conn.cursor()
-    c.execute("SELECT filename, integrity_hash FROM documents WHERE id=?", (doc_id,))
+    c.execute("SELECT filename, integrity_hash, email, created_at, status FROM documents WHERE id=?", (doc_id,))
     record = c.fetchone()
     conn.close()
 
     if not record:
-        return "Not found"
+        return "Document not found", 404
 
-    filename, original_hash = record
+    filename, original_hash, email, created_at, status = record
     path = os.path.join(UPLOAD_FOLDER, filename)
+
+    if not os.path.exists(path):
+        return "File not found on server", 404
 
     with open(path, "rb") as f:
         current_hash = hashlib.sha256(f.read()).hexdigest()
 
-    if current_hash == original_hash:
-        return "Integrity Verified"
-    return "WARNING: Document Modified"
+    verified = current_hash == original_hash
+
+    # Strip UUID from filename for display
+    display_filename = filename.split('_', 1)[1] if '_' in filename else filename
+
+    return render_template("verify.html",
+                         verified=verified,
+                         filename=display_filename,
+                         email=email,
+                         created_at=created_at,
+                         status=status,
+                         original_hash=original_hash,
+                         current_hash=current_hash)
 
 
 if __name__ == "__main__":
