@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>HR Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+    <style>
+        /* Snow canvas positioning */
+        canvas#snow {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: -1;
+        }
+
+        body {
+            background: linear-gradient(135deg, #e8e8e8, #f5f5f5);
+            overflow-x: hidden;
+        }
+    </style>
+</head>
+
+<body>
+
+<canvas id="snow"></canvas>
+
+<div class="container">
+
+    <!-- Top Bar -->
+    <div class="top-bar">
+        <h2>HR Dashboard</h2>
+
+        <div class="top-actions">
+            <a href="/admin/signed" class="primary-btn">
+                View Signed Records
+            </a>
+
+            <a href="/logout" class="logout-btn">
+                Logout
+            </a>
+        </div>
+    </div>
+
+    <!-- Upload Section -->
+    <div class="upload-box">
+        <form method="POST" action="/upload_pdf" enctype="multipart/form-data">
+            <input type="file" name="pdf" required>
+            <button type="submit">Upload</button>
+        </form>
+    </div>
+
+    <hr>
+
+    <!-- Compact Document List -->
+    <div class="doc-list">
+        {% for doc in documents %}
+        <div class="doc-row">
+            <div class="doc-info">
+                <strong>{{ doc[1] }}</strong>
+                <span class="status {{ doc[2]|lower }}">{{ doc[2] }}</span>
+            </div>
+
+            <div class="doc-actions">
+                <a href="/admin/design/{{ doc[0] }}">Design</a>
+                <a href="/sign/{{ doc[0] }}" target="_blank">Sign</a>
+                <a href="/admin/send/{{ doc[0] }}">Send</a>
+                <a href="/admin/verify/{{ doc[0] }}">Verify</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+</div>
+
+<!-- Snow Effect Script -->
+<script>
+const snowCanvas = document.getElementById("snow");
+const ctx = snowCanvas.getContext("2d");
+
+snowCanvas.width = window.innerWidth;
+snowCanvas.height = window.innerHeight;
+
+let flakes = [];
+
+for (let i = 0; i < 150; i++) {
+    flakes.push({
+        x: Math.random() * snowCanvas.width,
+        y: Math.random() * snowCanvas.height,
+        r: Math.random() * 3 + 1,
+        speed: Math.random() * 1 + 0.5
+    });
+}
+
+function drawSnow() {
+    ctx.clearRect(0, 0, snowCanvas.width, snowCanvas.height);
+    ctx.fillStyle = "rgba(255,255,255,0.8)";
+
+    flakes.forEach(f => {
+        ctx.beginPath();
+        ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2);
+        ctx.fill();
+
+        f.y += f.speed;
+
+        if (f.y > snowCanvas.height) {
+            f.y = -5;
+            f.x = Math.random() * snowCanvas.width;
+        }
+    });
+
+    requestAnimationFrame(drawSnow);
+}
+
+drawSnow();
+
+window.addEventListener("resize", () => {
+    snowCanvas.width = window.innerWidth;
+    snowCanvas.height = window.innerHeight;
+});
+</script>
+
+</body>
+</html>

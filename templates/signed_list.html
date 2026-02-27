@@ -1,0 +1,49 @@
+<h2>Signed Records</h2>
+
+<a href="/admin">← Back to Dashboard</a>
+
+<br><br>
+
+<form method="GET" action="/admin/signed">
+    <input type="text" name="search" placeholder="Search by Name or Employee ID"
+           value="{{ request.args.get('search', '') }}"
+           style="padding:8px; width:250px;">
+
+    <button type="submit" style="padding:8px 15px;">
+        Search
+    </button>
+
+    {% if request.args.get('search') %}
+        <a href="/admin/signed" style="margin-left:10px;">Clear</a>
+    {% endif %}
+</form>
+
+<br>
+
+<table border="1" cellpadding="8">
+    <tr>
+        <th>Record ID</th>
+        <th>Document ID</th>
+        <th>Employee ID</th>
+        <th>Signer Name</th>
+        <th>Version</th>
+        <th>Signed At</th>
+        <th>Download Copy</th>
+    </tr>
+
+    {% for r in records %}
+    <tr>
+        <td>{{ r[0] }}</td>
+        <td>{{ r[1] }}</td>
+        <td>{{ r[2] }}</td>
+        <td>{{ r[3] }}</td>
+        <td>{{ r[4] }}</td>
+        <td>{{ r[5] }}</td>
+        <td>
+            <a href="/admin/download/{{ r[0] }}">
+                Download
+            </a>
+        </td>
+    </tr>
+    {% endfor %}
+</table>

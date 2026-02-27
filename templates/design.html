@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Design Signature Fields</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+
+    <style>
+
+    /* =========================
+       BACKGROUND (SNOWY GLASS)
+    ========================== */
+    body {
+        margin: 0;
+        font-family: 'Segoe UI', sans-serif;
+        background: linear-gradient(135deg, #e8e8e8, #f5f5f5);
+        overflow-x: hidden;
+    }
+
+    canvas#snow {
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: -1;
+    }
+
+    /* =========================
+       HEADER
+    ========================== */
+    .page-header {
+        max-width: 1200px;
+        margin: 40px auto 20px auto;
+        padding: 25px;
+        border-radius: 25px;
+        background: rgba(255,255,255,0.35);
+        backdrop-filter: blur(20px);
+        box-shadow: 0 15px 40px rgba(0,0,0,0.1);
+        border: 1px solid rgba(255,255,255,0.6);
+    }
+
+    .page-header h2 {
+        margin: 0;
+        font-size: 26px;
+        color: #333;
+    }
+
+    /* =========================
+       TOOLBAR
+    ========================== */
+    .toolbar {
+        margin-top: 20px;
+        display: flex;
+        gap: 15px;
+    }
+
+    .toolbar button {
+        padding: 10px 20px;
+        border-radius: 12px;
+        border: none;
+        font-weight: 600;
+        cursor: pointer;
+        transition: 0.3s ease;
+        background: linear-gradient(135deg, #d9d9d9, #ffffff);
+        color: #333;
+    }
+
+    .toolbar button:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+    }
+
+    /* =========================
+       PDF CONTAINER
+    ========================== */
+    #pdf-container {
+        max-width: 1200px;
+        margin: 20px auto 60px auto;
+    }
+
+    .page-wrapper {
+        position: relative;
+        margin-bottom: 40px;
+        display: inline-block;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+        background: rgba(255,255,255,0.4);
+        backdrop-filter: blur(10px);
+        padding: 15px;
+    }
+
+    canvas {
+        border-radius: 15px;
+    }
+
+    /* =========================
+       FIELD BOX DESIGN
+    ========================== */
+    .box {
+        position: absolute;
+        border: 2px dashed #888;
+        background: rgba(255,255,255,0.5);
+        backdrop-filter: blur(5px);
+        resize: both;
+        overflow: auto;
+        cursor: move;
+        min-width: 80px;
+        min-height: 30px;
+        border-radius: 10px;
+        transition: 0.2s ease;
+    }
+
+    .box:hover {
+        border-color: #555;
+        background: rgba(255,255,255,0.7);
+    }
+
+    </style>
+</head>
+
+<body>
+
+<canvas id="snow"></canvas>
+
+<div class="page-header">
+    <h2>Design Fields - {{ filename }}</h2>
+
+    <div class="toolbar">
+        <button onclick="savePositions()">Save</button>
+        <button onclick="clearAll()">Clear All</button>
+    </div>
+</div>
+
+<div id="pdf-container"></div>
+
+<script>
+let positions = {{ fields | tojson }};
+const docId = "{{ doc_id }}";
+const pdfUrl = "/uploads/{{ filename }}";
+
+pdfjsLib.getDocument(pdfUrl).promise.then(pdf => {
+
+    for (let i = 1; i <= pdf.numPages; i++) {
+
+        pdf.getPage(i).then(page => {
+
+            const scale = 1.2;
+            const viewport = page.getViewport({ scale });
+
+            const wrapper = document.createElement("div");
+            wrapper.className = "page-wrapper";
+
+            const canvas = document.createElement("canvas");
+            const context = canvas.getContext("2d");
+
+            canvas.width = viewport.width;
+            canvas.height = viewport.height;
+
+            wrapper.appendChild(canvas);
+            document.getElementById("pdf-container").appendChild(wrapper);
+
+            page.render({ canvasContext: context, viewport: viewport });
+
+            canvas.addEventListener("click", function (e) {
+
+                const rect = canvas.getBoundingClientRect();
+                const clickX = e.clientX - rect.left;
+                const clickY = e.clientY - rect.top;
+
+                const pdfX = clickX / scale;
+                const pdfY = (canvas.height - clickY) / scale;
+
+                const field = {
+                    page: i - 1,
+                    x: pdfX,
+                    y: pdfY,
+                    width: 150,
+                    height: 50
+                };
+
+                positions.push(field);
+
+                createBox(wrapper, clickX, clickY, 150, 50, positions.length - 1, scale, canvas);
+            });
+
+            positions.forEach((p, index) => {
+                if (p.page === i - 1) {
+
+                    const left = p.x * scale;
+                    const top = canvas.height - p.y * scale;
+                    const width = p.width * scale;
+                    const height = p.height * scale;
+
+                    createBox(wrapper, left, top, width, height, index, scale, canvas);
+                }
+            });
+
+        });
+    }
+});
+
+function createBox(wrapper, left, top, width, height, index, scale, canvas) {
+
+    const box = document.createElement("div");
+    box.className = "box";
+    box.style.left = left + "px";
+    box.style.top = top + "px";
+    box.style.width = width + "px";
+    box.style.height = height + "px";
+
+    wrapper.appendChild(box);
+
+    let offsetX, offsetY, isDragging = false;
+
+    box.addEventListener("mousedown", function (e) {
+        isDragging = true;
+        offsetX = e.offsetX;
+        offsetY = e.offsetY;
+    });
+
+    document.addEventListener("mousemove", function (e) {
+        if (!isDragging) return;
+
+        const rect = wrapper.getBoundingClientRect();
+        const newLeft = e.clientX - rect.left - offsetX;
+        const newTop = e.clientY - rect.top - offsetY;
+
+        box.style.left = newLeft + "px";
+        box.style.top = newTop + "px";
+
+        updatePosition(index, newLeft, newTop, box.offsetWidth, box.offsetHeight, scale, canvas);
+    });
+
+    document.addEventListener("mouseup", function () {
+        isDragging = false;
+    });
+
+    box.addEventListener("mouseup", function () {
+        updatePosition(index,
+            parseFloat(box.style.left),
+            parseFloat(box.style.top),
+            box.offsetWidth,
+            box.offsetHeight,
+            scale,
+            canvas
+        );
+    });
+
+    box.ondblclick = function () {
+        if (confirm("Delete this field?")) {
+            positions.splice(index, 1);
+            box.remove();
+        }
+    };
+}
+
+function updatePosition(index, left, top, width, height, scale, canvas) {
+    const pdfX = left / scale;
+    const pdfY = (canvas.height - top) / scale;
+    const pdfWidth = width / scale;
+    const pdfHeight = height / scale;
+
+    positions[index].x = pdfX;
+    positions[index].y = pdfY;
+    positions[index].width = pdfWidth;
+    positions[index].height = pdfHeight;
+}
+
+function savePositions() {
+    fetch("/admin/save_fields/" + docId, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(positions)
+    }).then(() => alert("Fields Saved Successfully!"));
+}
+
+function clearAll() {
+    positions = [];
+    document.getElementById("pdf-container").innerHTML = "";
+    location.reload();
+}
+
+/* =========================
+   SNOW EFFECT
+========================= */
+
+const snowCanvas = document.getElementById("snow");
+const ctx = snowCanvas.getContext("2d");
+
+snowCanvas.width = window.innerWidth;
+snowCanvas.height = window.innerHeight;
+
+let flakes = [];
+
+for (let i = 0; i < 150; i++) {
+    flakes.push({
+        x: Math.random() * snowCanvas.width,
+        y: Math.random() * snowCanvas.height,
+        r: Math.random() * 3 + 1,
+        speed: Math.random() * 1 + 0.5
+    });
+}
+
+function drawSnow() {
+    ctx.clearRect(0, 0, snowCanvas.width, snowCanvas.height);
+    ctx.fillStyle = "rgba(255,255,255,0.8)";
+
+    flakes.forEach(f => {
+        ctx.beginPath();
+        ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2);
+        ctx.fill();
+
+        f.y += f.speed;
+
+        if (f.y > snowCanvas.height) {
+            f.y = -5;
+            f.x = Math.random() * snowCanvas.width;
+        }
+    });
+
+    requestAnimationFrame(drawSnow);
+}
+
+drawSnow();
+</script>
+
+</body>
+</html>

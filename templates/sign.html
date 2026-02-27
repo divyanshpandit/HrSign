@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Document Signing | Aaptatt Private Limited</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+    :root {
+        --primary: #1f2937;
+        --accent: #111827;
+        --border: #e5e7eb;
+        --muted: #6b7280;
+        --bg: #f4f6f9;
+    }
+
+    body {
+        margin: 0;
+        font-family: 'Inter', sans-serif;
+        background: var(--bg);
+        color: var(--primary);
+    }
+
+    /* =========================
+       TOP ENTERPRISE HEADER
+    ========================== */
+    .enterprise-header {
+        background: white;
+        border-bottom: 1px solid var(--border);
+        padding: 25px 60px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .company-left {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+
+    .company-logo {
+        height: 55px;
+    }
+
+    .company-name {
+        font-weight: 600;
+        font-size: 18px;
+        letter-spacing: 0.5px;
+    }
+
+    .company-meta {
+        text-align: right;
+        font-size: 13px;
+        color: var(--muted);
+        line-height: 1.6;
+    }
+
+    /* =========================
+       MAIN CONTENT WRAPPER
+    ========================== */
+    .page-wrapper {
+        max-width: 1100px;
+        margin: 50px auto;
+        padding: 0 20px;
+    }
+
+    .page-title {
+        font-size: 28px;
+        font-weight: 600;
+        margin-bottom: 30px;
+    }
+
+    .document-card {
+        background: white;
+        border-radius: 12px;
+        padding: 30px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.04);
+        border: 1px solid var(--border);
+    }
+
+    iframe {
+        width: 100%;
+        height: 650px;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+    }
+
+    /* =========================
+       FORM SECTION
+    ========================== */
+    .form-section {
+        margin-top: 40px;
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 25px;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+    }
+
+    label {
+        font-size: 13px;
+        font-weight: 500;
+        margin-bottom: 8px;
+        color: var(--muted);
+    }
+
+    input {
+        padding: 12px 14px;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        font-size: 14px;
+        transition: 0.2s ease;
+    }
+
+    input:focus {
+        outline: none;
+        border-color: #2563eb;
+        box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+    }
+
+    #signature-pad {
+        width: 100%;
+        height: 160px;
+        border-radius: 8px;
+        border: 1px dashed var(--border);
+        background: #fafafa;
+    }
+
+    .signature-wrapper {
+        margin-top: 30px;
+    }
+
+    .button-group {
+        margin-top: 25px;
+        display: flex;
+        justify-content: flex-end;
+        gap: 15px;
+    }
+
+    button {
+        padding: 11px 22px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: 0.2s ease;
+    }
+
+    .btn-secondary {
+        background: #f3f4f6;
+        border: 1px solid var(--border);
+    }
+
+    .btn-primary {
+        background: #111827;
+        color: white;
+        border: none;
+    }
+
+    .btn-primary:hover {
+        background: #000;
+    }
+
+    .btn-secondary:hover {
+        background: #e5e7eb;
+    }
+
+    @media (max-width: 900px) {
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+
+        iframe {
+            height: 500px;
+        }
+    }
+    </style>
+</head>
+
+<body>
+
+<!-- ENTERPRISE HEADER -->
+<div class="enterprise-header">
+    <div class="company-left">
+        <img src="{{ url_for('static', filename='logo.png') }}" alt="" class="company-logo">
+        <div>
+            <div class="company-name">Aaptatt Private Limited</div>
+            <div style="font-size:12px; color:#6b7280;">Innovation at Forefront</div>
+        </div>
+    </div>
+
+    <div class="company-meta">
+        2nd Floor, Plot #4, Minarch Tower, Sector 44<br>
+        Gurugram, Haryana - 122003<br>
+        CIN: U62099HR2023PTC111102<br>
+        GSTIN: 06AAYCA5916E1ZF
+    </div>
+</div>
+
+<!-- PAGE CONTENT -->
+<div class="page-wrapper">
+
+    <div class="page-title">𝔇𝔬𝔠𝔲𝔪𝔢𝔫𝔱 𝔖𝔦𝔤𝔫𝔦𝔫𝔤  </div>
+
+    <div class="document-card">
+
+        <!-- PDF Viewer -->
+        <iframe src="/uploads/{{ filename }}"></iframe>
+
+        <!-- FORM -->
+        <div class="form-section">
+            <form method="POST">
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Signer Full Name</label>
+                        <input name="signer_name" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Employee ID</label>
+                        <input name="employee_id" required>
+                    </div>
+                </div>
+
+                <div class="signature-wrapper">
+                    <label>Digital Signature</label>
+                    <canvas id="signature-pad"></canvas>
+                </div>
+
+                <div class="button-group">
+                    <button type="button" class="btn-secondary" onclick="clearSign()">Clear</button>
+                    <button type="button" class="btn-primary" onclick="submitSign()">Submit Signature</button>
+                </div>
+
+                <input type="hidden" name="signature" id="signature-input">
+
+            </form>
+        </div>
+
+    </div>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/signature_pad/4.1.5/signature_pad.umd.min.js"></script>
+
+<script>
+const canvas = document.getElementById("signature-pad");
+const pad = new SignaturePad(canvas, { penColor: "black" });
+
+function resizeCanvas() {
+    const ratio = Math.max(window.devicePixelRatio || 1, 1);
+    canvas.width = canvas.offsetWidth * ratio;
+    canvas.height = canvas.offsetHeight * ratio;
+    canvas.getContext("2d").scale(ratio, ratio);
+}
+resizeCanvas();
+window.addEventListener("resize", resizeCanvas);
+
+function clearSign() { pad.clear(); }
+
+function submitSign() {
+    if (pad.isEmpty()) {
+        alert("Please provide your signature.");
+        return;
+    }
+    document.getElementById("signature-input").value = pad.toDataURL("image/png");
+    document.forms[0].submit();
+}
+</script>
+
+</body>
+</html>
