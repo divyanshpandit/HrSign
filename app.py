@@ -531,26 +531,6 @@ def download_signed_public(record_id):
     download_name = f"signed_{record[1].replace(' ', '_')}_v{record[2]}.pdf"
     return send_file(file_path, as_attachment=True, download_name=download_name)
 
-
-@app.route("/setup-hr")
-def setup_hr():
-    conn = sqlite3.connect(DB_NAME)
-    c = conn.cursor()
-
-    allowed = [
-        "divyanshpandiit@gmail.com"
-    ]
-
-    for email in allowed:
-        try:
-            c.execute("INSERT INTO hr_allowed_emails (email) VALUES (?)", (email,))
-        except:
-            pass
-
-    conn.commit()
-    conn.close()
-
-    return "HR emails added"
 # =======================
 # VIEW SIGNED RECORDS
 # =======================
