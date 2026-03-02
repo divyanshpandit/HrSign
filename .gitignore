@@ -1,0 +1,9 @@
+.env
+esignature.db
+*.pdf
+signed_files/
+uploads/
+.venv/
+__pycache__/
+fields_*.json
+.vscode/
